@@ -6,6 +6,28 @@ class Result extends ChangeNotifier {
   String _operator = ""; // stores the curr opperations
   double? _firstOperand; // first operand for operations
   bool pointActive = false; // Tracks if decimal point is used
+  List _data = []; // history result
+  bool _isHistoryPageOpen = false;
+
+  List? getData() => _data;
+  void clearData() {
+    _data = [];
+    notifyListeners();
+  }
+
+  void openHistoryPage() {
+    _isHistoryPageOpen = true;
+    notifyListeners();
+  }
+
+  void closeHistoryPage() {
+    _isHistoryPageOpen = false;
+    notifyListeners();
+  }
+
+  bool getIsHistoryPageOpen() {
+    return _isHistoryPageOpen;
+  }
 
   void calculate(String buttonText) {
     if (buttonText == "AC") {
@@ -30,6 +52,7 @@ class Result extends ChangeNotifier {
       res = _operator;
       pointActive = false;
     } else if (buttonText == "=") {
+      bool tempOp;
       // Calculate result
       double? secondOperand = double.tryParse(_currentInput);
       if (_firstOperand != null && secondOperand != null) {
@@ -55,9 +78,17 @@ class Result extends ChangeNotifier {
             }
             break;
         }
+        _data.add(_firstOperand.toString() +
+            " " +
+            _operator +
+            " " +
+            secondOperand.toString() +
+            " = " +
+            res);
         _firstOperand = null;
         _operator = "";
         _currentInput = res;
+
         pointActive = false;
       }
     } else if (buttonText == "+/-") {
@@ -81,6 +112,7 @@ class Result extends ChangeNotifier {
       if (_operator.isEmpty && _currentInput.isNotEmpty) {
         //interpret the current input as a percentage of 1
         double value = double.parse(_currentInput) / 100;
+        _data.add(_currentInput + " % = " + value.toString());
         _currentInput = value.toString();
         res = _currentInput;
       } else if (_operator.isNotEmpty && _currentInput.isNotEmpty) {
@@ -90,8 +122,11 @@ class Result extends ChangeNotifier {
           double percentageValue;
           if (_operator == "+" || _operator == "-") {
             percentageValue = _firstOperand! * (secondOperand / 100);
+            _data.add(
+                '${_firstOperand} x (${secondOperand}) ${percentageValue}');
           } else if (_operator == "x" || _operator == "÷") {
             percentageValue = secondOperand / 100;
+            _data.add('${secondOperand} / 100 = ${percentageValue}');
           } else {
             percentageValue = secondOperand;
           }
